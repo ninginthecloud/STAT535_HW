@@ -53,3 +53,7 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+
+# Personal files
+.pdf
+.tex
