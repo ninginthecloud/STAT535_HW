@@ -3,7 +3,7 @@
 ####################
 library(MASS)#for multinormal distribution
 library(ggplot2)# for plot
-#problem one
+##problem one
 #data set generation function 
 data.generate<-function(Num,Mu=matrix(c(-1.6,1.6,0,0),c(2,2)),Sigma=diag(c(1,1))){
 Y<-sample(c(-1,1),size=Num,replace=T,prob=c(.5,.5))
@@ -83,17 +83,54 @@ l.plot <- data.frame(K=Kpool,l.hat=mean.l,se = sd.l)
 L.plot <- data.frame(K=Kpool,L=mean.L,se = sd.L)
 V.plot <- data.frame(K=Kpool,V=V)
 #ggplot2
-limits <- aes(ymax = l.hat + se, ymin=l.hat-se)
+limits1 <- aes(ymax = l.hat + se, ymin=l.hat-se)
 p <- ggplot(data=l.plot, aes(x=K,y=l.hat))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)+
-	geom_errorbar(limits,colour="red",size=.7,width=.25)
+	geom_errorbar(limits1,colour="red",size=.7,width=.25)
 
-limits <- aes(ymax = L + se, ymin=L-se)
+limits2 <- aes(ymax = L + se, ymin=L-se)
 q <- ggplot(data=L.plot, aes(x=K,y=L))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)+
-	geom_errorbar(limits,colour="red",size=.7,width=.25)
+	geom_errorbar(limits2,colour="red",size=.7,width=.25)
 
+#Bayes error
+1/2*((1-pnorm(0,mean=-1.6,sd=1))+pnorm(0,mean=1.6,sd=1))
+#0.05479929
+#combined plot
+
+##problem 2
+#read data .dat type
+wkdata<-read.table("E:\\UW\\autumn 2014\\STAT535\\HW\\STAT535_HW\\HW2\\hw2-1d-train.dat") 
+dim(wkdata)
+#estimate p=P(Y=1)
+p.hat<-mean(wkdata[,2]==1)
+#estimate mu+ and mu_
+mu.positive<-mean(wkdata[wkdata[,2]==1,1])
+mu.negative<-mean(wkdata[wkdata[,2]==-1,1])
+
+#boundary for LDA
+(log((1-p.hat)/p.hat)+1/2*(mu.positive^2-mu.negative^2))/(mu.positive-mu.negative)#0.1245507
+
+#linear classifier
+#s=1, theta-L
+emprical.error<-function(x,theta){
+Y.est<-c(-1,1)[(x[,1]>=theta)+1]
+return(mean(Y.est!=x[,2]))
+}
+
+err<-NULL;
+Thetapool<-seq(-2,5,.05)
+for(i in Thetapool){
+err<-c(err,emprical.error(wkdata,i))
+}
+err.data<-data.frame(Theta=Thetapool,error=err)
+
+err.plot<-ggplot(data=err.data,aes(y=error,x=Theta))+
+		geom_line(colour="#0066FF",size=1)
+pdf<-pdf(file="emprical error.pdf",width=10,height=8)
+err.plot
+dev.off()
 
 #
