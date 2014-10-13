@@ -2,7 +2,7 @@
 #STAT 535 HW2      #
 ####################
 library(MASS)#for multinormal distribution
-
+library(ggplot2)# for plot
 #problem one
 #data set generation function 
 data.generate<-function(Num,Mu=matrix(c(-1.6,1.6,0,0),c(2,2)),Sigma=diag(c(1,1))){
@@ -53,9 +53,13 @@ return(mean(P*(1-P)))
 #generate testing data D
 test.data<-data.generate(Num=1000)
 Kpool<-c(1,3,7,11,15,19,21,23,25,31,37,40)
+Kpool<-c(1,3,7)
 BNum=30
 mean.l<-NULL;
 mean.L<-NULL;
+sd.l<-NULL;
+sd.L<-NULL;
+
 for(k in Kpool){
 l.b<-NULL;
 L.b<-NULL;
@@ -68,9 +72,28 @@ l.b<-c(l.b,lb(train.data,K=k,dimension=2))
 L.b<-c(L.b,Lb(test.data,y))
 }
 V<-V.fun(Y)
-mean.l<-c(result.l,mean(l.b))
-mean.L<-c(result.L,mean(L.b))
+mean.l<-c(mean.l,mean(l.b))
+mean.L<-c(mean.L,mean(L.b))
 sd.l<-c(sd.l,sd(l.b))
 sd.L<-c(sd.L,sd(l.b))
 }
 
+#generate data frame
+l.plot <- data.frame(K=Kpool,l.hat=mean.l,se = sd.l)
+L.plot <- data.frame(K=Kpool,L=mean.L,se = sd.L)
+V.plot <- data.frame(K=Kpool,V=V)
+#ggplot2
+limits <- aes(ymax = l.hat + se, ymin=l.hat-se)
+p <- ggplot(data=l.plot, aes(x=K,y=l.hat))+
+	geom_point()+
+	geom_line(colour="blue",size=0.7)+
+	geom_errorbar(limits,colour="red",size=.7,width=.25)
+
+limits <- aes(ymax = L + se, ymin=L-se)
+q <- ggplot(data=L.plot, aes(x=K,y=L))+
+	geom_point()+
+	geom_line(colour="blue",size=0.7)+
+	geom_errorbar(limits,colour="red",size=.7,width=.25)
+
+
+#
