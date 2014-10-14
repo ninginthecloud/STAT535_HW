@@ -79,48 +79,47 @@ sd.L<-c(sd.L,sd(l.b))
 }
 
 #generate data frame
-l.plot <- data.frame(K.l=Kpool,l.hat=mean.l,se = sd.l)
-L.plot <- data.frame(K.L=Kpool,L=mean.L,se = sd.L)
+l.plot <- data.frame(K.l=Kpool,l.hat=mean.l,se.l = sd.l)
+L.plot <- data.frame(K.L=Kpool,L=mean.L,se.L = sd.L)
 V.plot <- data.frame(K.v=Kpool,V=V)
 #ggplot2
-limits1 <- aes(ymax = l.hat + se, ymin=l.hat-se)
+limits1 <- aes(ymax = l.hat + se.l, ymin=l.hat-se.l)
 p <- ggplot(data=l.plot, aes(x=K.l,y=l.hat))+
 	geom_point()+
-	geom_line(colour="blue",size=0.7)+
-	geom_errorbar(limits1,colour="red",size=.7,width=.25)
+	geom_line(colour="red",size=0.7)+
+	geom_errorbar(limits1,colour="blue",size=.7,width=.25)
 
-limits2 <- aes(ymax = L + se, ymin=L-se)
+limits2 <- aes(ymax = L + se.L, ymin=L-se.L)
 q <- ggplot(data=L.plot, aes(x=K.L,y=L))+
 	geom_point()+
-	geom_line(colour="blue",size=0.7)+
-	geom_errorbar(limits2,colour="red",size=.7,width=.25)
+	geom_line(colour="orange",size=0.7)+
+	geom_errorbar(limits2,colour="blue",size=.7,width=.25)
 
 v <- ggplot(data=V.plot, aes(x=K.v,y=V))+
 	geom_point()+
-	geom_line(colour="blue",size=0.7)
-pdf<-pdf("HW2_1a".pdf,width=10,height=8)
+	geom_line(colour="pink",size=0.7)
+pdf<-pdf("HW2_1a.pdf",width=10,height=8)
 p
 dev.off()
 
-pdf<-pdf("HW2_1b".pdf,width=10,height=8)
+pdf<-pdf("HW2_1b.pdf",width=10,height=8)
 q
 dev.off()
 
-pdf<-pdf("HW2_1c".pdf,width=10,height=8)
+pdf<-pdf("HW2_1c.pdf",width=10,height=8)
 v
 dev.off()
 
-combine<-ggplot()+
-		geom_point(data=l.plot, aes(x=K.l,y=l.hat))+
-		geom_line(data=l.plot, aes(x=K.l,y=l.hat),colour="red",size=0.7)+
-		geom_errorbar(data=l.plot,limits1,colour="blue",size=.7,width=.25)+
-		geom_point(data=L.plot, aes(x=K.L,y=L))+
-		geom_line(data=L.plot, aes(x=K.L,y=L),colour="orange",size=0.7)+
-	geom_errorbar(data=L.plot,limits2,colour="blue",size=.7,width=.25)+
-	geom_point(data=V.plot, aes(x=K.v,y=V))+
-	geom_line(data=V.plot, aes(x=K.v,y=V),colour="pink",size=0.7)+
-	geom_abline(intercept = 0.054799, slope = 0)
+total<-data.frame(K=rep(Kpool,3),l=c(mean.l,mean.L,V),se=c(sd.l,sd.L,rep(0,length(Kpool))),group=as.factor(rep(c("training error","test error","Variance"),each=length(Kpool))))
+combine<-ggplot(data=total,aes(x=K,y=l,colour=group))+
+		geom_point(aes(x=K,y=l,colour=group))+
+		geom_line(size=1)+
+		geom_errorbar(aes(ymin=l-se,ymax=l+se,colour=group),width=.25)+
+		geom_abline(intercept = 0.054799, slope = 0,size=1.2,colour="orange",linetype="dashed")
+pdf<-pdf("HW2_1d.pdf",width=10,height=8)
 combine
+dev.off()		
+		
 #Bayes error
 1/2*((1-pnorm(0,mean=-1.6,sd=1))+pnorm(0,mean=1.6,sd=1))
 #0.05479929
@@ -137,7 +136,7 @@ mu.positive<-mean(wkdata[wkdata[,2]==1,1])
 mu.negative<-mean(wkdata[wkdata[,2]==-1,1])
 
 #boundary for LDA
-(log((1-p.hat)/p.hat)+1/2*(mu.positive^2-mu.negative^2))/(mu.positive-mu.negative)#0.1245507
+theta_g<-(log((1-p.hat)/p.hat)+1/2*(mu.positive^2-mu.negative^2))/(mu.positive-mu.negative)#0.1245507
 
 #linear classifier
 #s=1, theta-L
@@ -147,23 +146,74 @@ return(mean(Y.est!=x[,2]))
 }
 
 err<-NULL;
-Thetapool<-seq(-2,5,.05)
+Thetapool<-seq(-2,5,.001)
 for(i in Thetapool){
 err<-c(err,emprical.error(wkdata,i))
 }
 err.data<-data.frame(Theta=Thetapool,error=err)
-
+theta_L<-err.data[which.min(err.data[,2]),1]
 err.plot<-ggplot(data=err.data,aes(y=error,x=Theta))+
 		geom_line(colour="#0066FF",size=1)
-pdf<-pdf(file="emprical error.pdf",width=10,height=8)
+pdf<-pdf(file="HW2_2a.pdf",width=10,height=8)
 err.plot
 dev.off()
 
+#distribution
+X<-seq(-2.5,2.5,0.01)
+P1<-1/(1+2*exp(-4*X))
+P2<-1-1/(1+2*exp(-4*X))
+
+plot.data<-data.frame(x=rep(X,2),y=c(P1,P2),group=rep(c("P(Y=+1|X)","P(Y=-1|X)"),each=length(X)))
+plot.dist<-ggplot(data=plot.data,aes(x=x,y=y,colour=group))+
+geom_line(size=1)
+pdf<-pdf("HW2_d1.pdf",width=10,height=8)
+plot.dist
+dev.off()
+
+X1<-seq(-2.5,log(2)/4,.01)
+X2<-seq(log(2)/4,2.5,0.01)
+P1<-1/(1+2*exp(-4*X1))
+P2<-1-1/(1+2*exp(-4*X2))
+plot.data<-data.frame(x=c(X1,X2),y=c(P1,P2),group=rep(c("P(Y=+1|X)","P(Y=-1|X)"),c(length(X1),length(X2))))
+plot.dist<-ggplot(data=plot.data,aes(x=x,y=y,colour=group))+
+geom_line(size=1)
+pdf<-pdf("HW2_d2.pdf",width=10,height=8)
+plot.dist
+dev.off()
+theta_s<-log(2)/4
 #
-1/sqrt(2*pi)
+X<-seq(-6,6,0.01)
+p<-1/3
+mu1<--2
+mu2<-2
+P1<-dnorm(X,mu1,1)
+P2<-dnorm(X,mu2,1)
+
+plot.data<-data.frame(x=rep(X,2),y=c((1-p)*P1,p*P2),group=rep(c("(1-p)g_","pg+"),each=length(X)))
+plot.dist<-ggplot(data=plot.data,aes(x=x,y=y,colour=group))+
+geom_line(size=1)+
+geom_vline(xintercept=mu1,linetype="dotted",size=1)+
+geom_vline(xintercept=mu2,linetype="dotted",size=1)+
+geom_vline(xintercept=theta_g,linetype="dashed")+
+geom_vline(xintercept=theta_L,linetype="dotdash")+
+geom_vline(xintercept=theta_s,linetype="longdash")
+pdf<-pdf("HW2_2f.pdf",width=10,height=8)
+plot.dist
+dev.off()
+#outlier
+new.data<-rbind(wkdata,c(100,1))
+p.hat.new<-mean(new.data[,2]==1)
+mu.positive.new<-mean(new.data[new.data[,2]==1,1])
+mu.negative.new<-mean(new.data[new.data[,2]==-1,1])
+err.new<-NULL;
+Thetapool<-seq(-2,5,.01)
+for(i in Thetapool){
+err.new<-c(err.new,emprical.error(new.data,i))
+}
+err.data.new<-data.frame(Theta=Thetapool,error=err.new)
 
 
-
+(log((1-p.hat.new)/p.hat.new)+1/2*(mu.positive.new^2-mu.negative.new^2))/(mu.positive.new-mu.negative.new)#0.5721825
 ##proble three
 # 1-NN
 point1<-data.frame(x1=c(-.5,.5,.5,.5,1.5),x2=c(.5,-.5,.5,1.5,.5),z=as.factor(c(-1,-1,+1,-1,-1)))
