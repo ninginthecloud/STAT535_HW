@@ -53,13 +53,13 @@ return(mean(P*(1-P)))
 #generate testing data D
 test.data<-data.generate(Num=1000)
 Kpool<-c(1,3,7,11,15,19,21,23,25,31,37,40)
-Kpool<-c(1,3,7)
+#Kpool<-c(1,3,7)
 BNum=30
 mean.l<-NULL;
 mean.L<-NULL;
 sd.l<-NULL;
 sd.L<-NULL;
-
+V<-NULL;
 for(k in Kpool){
 l.b<-NULL;
 L.b<-NULL;
@@ -71,7 +71,7 @@ Y<-rbind(Y,y)
 l.b<-c(l.b,lb(train.data,K=k,dimension=2))
 L.b<-c(L.b,Lb(test.data,y))
 }
-V<-V.fun(Y)
+V<-c(V,V.fun(Y))
 mean.l<-c(mean.l,mean(l.b))
 mean.L<-c(mean.L,mean(L.b))
 sd.l<-c(sd.l,sd(l.b))
@@ -94,7 +94,9 @@ q <- ggplot(data=L.plot, aes(x=K,y=L))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)+
 	geom_errorbar(limits2,colour="red",size=.7,width=.25)
-
+v <- ggplot(data=V.plot, aes(x=K,y=V))+
+	geom_point()+
+	geom_line(colour="blue",size=0.7)
 #Bayes error
 1/2*((1-pnorm(0,mean=-1.6,sd=1))+pnorm(0,mean=1.6,sd=1))
 #0.05479929
@@ -134,3 +136,51 @@ err.plot
 dev.off()
 
 #
+1/sqrt(2*pi)
+
+
+
+##proble three
+# 1-NN
+point1<-data.frame(x1=c(-.5,.5,.5,.5,1.5),x2=c(.5,-.5,.5,1.5,.5),z=as.factor(c(-1,-1,+1,-1,-1)))
+
+plot<-ggplot()+
+	geom_point(data=point1,aes(x=x2,y=x1,colour=z,size=5))+
+	geom_segment(aes(x = 0, y = 0, xend = 0, yend = 1),linetype="dotted",size=1)+
+	geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0),linetype="dotted",size=1)+
+	geom_segment(aes(x = 1, y = 0, xend = 1, yend = 1),linetype="dotted",size=1)+
+	geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1),linetype="dotted",size=1)
+pdf<-pdf("1nn.pdf",width=10,height=8)
+plot
+dev.off()
+
+#3-NN
+center.x<-function(centered,shift){
+return(c(centered-shift,centered+shift,centered+shift,centered-shift))}
+center.y<-function(centered,shift){
+return(c(centered-shift,centered-shift,centered+shift,centered+shift))}
+s<-0.1
+point1<-data.frame(x1=c(center.x(-.5,s),center.x(.5,s),center.x(.5,s),center.x(.5,s),center.x(1.5,s)),x2=c(center.y(.5,s),center.y(-.5,s),center.y(.5,s),center.y(1.5,s),center.y(.5,s)),z=as.factor(rep(c(-1,-1,1,-1,-1),each=4)))
+
+plot<-ggplot()+
+	geom_point(data=point1,aes(x=x2,y=x1,colour=z,size=5))+
+	geom_segment(aes(x = 0, y = 0, xend = 0, yend = 1),linetype="dotted",size=1)+
+	geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0),linetype="dotted",size=1)+
+	geom_segment(aes(x = 1, y = 0, xend = 1, yend = 1),linetype="dotted",size=1)+
+	geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1),linetype="dotted",size=1)
+pdf<-pdf("3nn.pdf",width=10,height=8)
+plot
+dev.off()
+
+#naive bayesian classifier
+plot<-ggplot()+
+	geom_segment(aes(x = 0, y = 0, xend = 0, yend = 1),linetype="dotted",size=1)+
+	geom_segment(aes(x = 0, y = 0, xend = 1, yend = 0),linetype="dotted",size=1)+
+	geom_segment(aes(x = 1, y = 0, xend = 1, yend = 1),linetype="dotted",size=1)+
+	geom_segment(aes(x = 0, y = 1, xend = 1, yend = 1),linetype="dotted",size=1)+
+	xlim(c(-1,2))+
+	ylim(c(-1,2))
+pdf<-pdf(file="naive bayesian classifier.pdf",width=10,height=8)
+plot
+dev.off()
+	
