@@ -97,6 +97,29 @@ q <- ggplot(data=L.plot, aes(x=K,y=L))+
 v <- ggplot(data=V.plot, aes(x=K,y=V))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)
+pdf<-pdf("HW2_1a".pdf,width=10,height=8)
+p
+dev.off()
+
+pdf<-pdf("HW2_1b".pdf,width=10,height=8)
+q
+dev.off()
+
+pdf<-pdf("HW2_1c".pdf,width=10,height=8)
+v
+dev.off()
+
+combine<-ggplot()+
+		geom_point(data=l.plot, aes(x=K,y=l.hat))+
+		geom_line(colour="red",size=0.7)+
+		geom_errorbar(limits1,colour="blue",size=.7,width=.25)+
+		geom_point(data=L.plot, aes(x=K,y=L))+
+		geom_line(colour="orange",size=0.7)+
+	geom_errorbar(limits2,colour="blue",size=.7,width=.25)+
+	geom_point(data=V.plot, aes(x=K,y=V))+
+	geom_line(colour="pink",size=0.7)+
+	geom_hline(yintercept=0.054799)
+combine
 #Bayes error
 1/2*((1-pnorm(0,mean=-1.6,sd=1))+pnorm(0,mean=1.6,sd=1))
 #0.05479929
