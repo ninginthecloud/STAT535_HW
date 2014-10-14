@@ -79,22 +79,23 @@ sd.L<-c(sd.L,sd(l.b))
 }
 
 #generate data frame
-l.plot <- data.frame(K=Kpool,l.hat=mean.l,se = sd.l)
-L.plot <- data.frame(K=Kpool,L=mean.L,se = sd.L)
-V.plot <- data.frame(K=Kpool,V=V)
+l.plot <- data.frame(K.l=Kpool,l.hat=mean.l,se = sd.l)
+L.plot <- data.frame(K.L=Kpool,L=mean.L,se = sd.L)
+V.plot <- data.frame(K.v=Kpool,V=V)
 #ggplot2
 limits1 <- aes(ymax = l.hat + se, ymin=l.hat-se)
-p <- ggplot(data=l.plot, aes(x=K,y=l.hat))+
+p <- ggplot(data=l.plot, aes(x=K.l,y=l.hat))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)+
 	geom_errorbar(limits1,colour="red",size=.7,width=.25)
 
 limits2 <- aes(ymax = L + se, ymin=L-se)
-q <- ggplot(data=L.plot, aes(x=K,y=L))+
+q <- ggplot(data=L.plot, aes(x=K.L,y=L))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)+
 	geom_errorbar(limits2,colour="red",size=.7,width=.25)
-v <- ggplot(data=V.plot, aes(x=K,y=V))+
+
+v <- ggplot(data=V.plot, aes(x=K.v,y=V))+
 	geom_point()+
 	geom_line(colour="blue",size=0.7)
 pdf<-pdf("HW2_1a".pdf,width=10,height=8)
@@ -110,15 +111,15 @@ v
 dev.off()
 
 combine<-ggplot()+
-		geom_point(data=l.plot, aes(x=K,y=l.hat))+
-		geom_line(colour="red",size=0.7)+
-		geom_errorbar(limits1,colour="blue",size=.7,width=.25)+
-		geom_point(data=L.plot, aes(x=K,y=L))+
-		geom_line(colour="orange",size=0.7)+
-	geom_errorbar(limits2,colour="blue",size=.7,width=.25)+
-	geom_point(data=V.plot, aes(x=K,y=V))+
-	geom_line(colour="pink",size=0.7)+
-	geom_hline(yintercept=0.054799)
+		geom_point(data=l.plot, aes(x=K.l,y=l.hat))+
+		geom_line(data=l.plot, aes(x=K.l,y=l.hat),colour="red",size=0.7)+
+		geom_errorbar(data=l.plot,limits1,colour="blue",size=.7,width=.25)+
+		geom_point(data=L.plot, aes(x=K.L,y=L))+
+		geom_line(data=L.plot, aes(x=K.L,y=L),colour="orange",size=0.7)+
+	geom_errorbar(data=L.plot,limits2,colour="blue",size=.7,width=.25)+
+	geom_point(data=V.plot, aes(x=K.v,y=V))+
+	geom_line(data=V.plot, aes(x=K.v,y=V),colour="pink",size=0.7)+
+	geom_abline(intercept = 0.054799, slope = 0)
 combine
 #Bayes error
 1/2*((1-pnorm(0,mean=-1.6,sd=1))+pnorm(0,mean=1.6,sd=1))
