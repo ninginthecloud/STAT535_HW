@@ -15,11 +15,23 @@ library(zoo)#used for find local max/min
 #problem three
 test<-read.table("E:\\UW\\autumn 2014\\STAT535\\HW\\STAT535_HW\\HW4\\hw4-1D-clean.dat")
 test<-read.table("E:\\UW\\autumn 2014\\STAT535\\HW\\STAT535_HW\\HW4\\hw4-1D-noisy-labels.dat")
+#local max
+localmax<-function(index,value){
+reorder=index[order(value[index],decreasing=T)]
+gap<-NULL;
+for(i in reorder){
+gap=c(gap,min(abs(diff(value[(i-1):(i+1)]))))
+}
+target=reorder[gap>=mean(gap)][1]
+target
+}
 #stumps
 #Y in -1 or +1
 #d is the dimension
 #N is the number of data points
 stumps<-function(X,Y,W,N,d,R=1){
+#local max
+
 	X<-matrix(X,c(N,d))
 	b<-matrix(rep(0,2*d),c(d,2))
 	err<-rep(0,d)
@@ -34,27 +46,33 @@ stumps<-function(X,Y,W,N,d,R=1){
 		l.mius<-index(min.value)[coredata(min.value)]
 		l.plus<-index(max.value)[coredata(max.value)]
 		plot(0:N,error,type="l")
-		if(!length(l.plus)){E.plus=-10000} else{E.plus=max(error[l.plus]);
+		if(!length(l.plus)){E.plus=-10000} else{#L.plus=localmax(l.plus,error);
+												#E.plus=error[L.plus];
+												E.plus=max(error[l.plus]);
 												np.plus=l.plus[ error[l.plus]==E.plus];
-												#L.plus=np.plus[1];
-												L.plus=np.plus[sample.int(length(np.plus),1)]
+											    L.plus=np.plus[sample.int(length(np.plus),1)]
+												abline(v=L.plus,col="red");abline(h=E.plus,col="red")
 												}
-		if(!length(l.mius)){E.mius=-10000} else{E.mius=max(-error[l.mius]);
-												np.mius=(l.mius[ -error[l.mius]==E.mius]);
-												#L.mius=np.mius[1];
-												L.mius=np.mius[sample.int(length(np.mius),1)]
+		if(!length(l.mius)){E.mius=-10000} else{#L.mius=localmax(l.mius,-error);
+												#E.mius=-error[L.mius];
+		
+												E.mius=max(-error[l.mius]);
+												np.mius=(l.mius[-error[l.mius]==E.mius]);
+												
+												#L.mius=np.mius[sample.int(length(np.mius),1)]
+												abline(v=L.mius,col="green");abline(h=-E.mius,col="green")
 												}
 		
 		
-		abline(v=L.mius,col="green");abline(h=-E.mius,col="green")
-		abline(v=L.plus,col="red");abline(h=E.plus,col="red")	
+		
+			
 	
 	if(E.plus>E.mius){b[j,]<-c(1,-mean(sort(x)[(L.plus):(L.plus+1)]));err[j]<-(1-E.plus)/2}
 	else{b[j,]<-c(-1,mean(sort(x)[(L.mius):(L.mius+1)]));err[j]<-(1-E.mius)/2}
 	}
 	return(c(b=b,err=err))	
 }
-stumps(test[,1],test[,2],W=rep(1/147,147),N=147,d=1)
+stumps(test[,1],test[,2],W=rep(1/dim(test)[1],dim(test)[1]),N=dim(test)[1],d=1)
 stumps(train[,1],train[,3],W=rep(1/149,149),N=149,d=1)
 
 
@@ -153,7 +171,8 @@ pdf<-pdf("HW4_4_1.pdf",width=8,height=6)
 error.plot
 dev.off()
 
-
+bk=result$B
+beta=result$Beta
 x1=seq(0,1,by=0.1)
 x2=seq(0,1,by=0.1)
 y2=rep(x1,11)
@@ -195,3 +214,84 @@ pdf<-pdf("HW4_4_test.pdf",width=8,height=6)
 test.plot
 dev.off()
 
+####################
+#test on circle data
+
+train.data=read.table(file="E:\\UW\\autumn 2014\\STAT535\\HW\\STAT535_HW\\HW3\\hw3-nn-train-10000.dat")
+colnames(train.data)<-c("x1","x2","y")
+test.data=read.table(file="E:\\UW\\autumn 2014\\STAT535\\HW\\STAT535_HW\\HW3\\hw3-nn-test.dat")
+colnames(train.data)<-c("x1","x2","y")
+
+
+m=40
+result<-adaboostold(X=train.data[,1:2],Y=train.data[,3],N=10000,M=m,X.test=test.data[,1:2],Y.test=test.data[,3])
+library(ggplot2)
+
+error.data<-data.frame(iteration=rep(1:m,2),error=c(result$train.error,result$test.error),type=as.factor(c(rep("training.error",m),rep("testing error",m))))
+error.plot<-ggplot(data=error.data,aes(x=iteration,y=error,col=type))+
+			geom_line()
+pdf<-pdf("HW4_4_c1.pdf",width=8,height=6)			
+error.plot
+dev.off()
+
+bk=result$B
+beta=result$Beta
+x1=seq(0,1,by=0.01)
+x2=seq(0,1,by=0.01)
+y2=rep(x1,101)
+k=1
+y1=rep(NA,101*101)
+for(j in 1:length(x2))
+{
+  y1[k:(k+100)]=rep(x2[j],101)
+  k=k+101
+}
+y1
+con=data.frame(y1,y2)
+q=0
+for (k in 1:m)
+{
+  j=ifelse((k%%2)==1,1,2)
+  q=q+beta[k]*sign(bk[1,k]*con[,j]+bk[2,k])
+}
+z=sign(q)
+z
+con=data.frame(y1,y2,z)
+colnames(train.data)<-c("x1","x2","y")
+train.data$type=as.factor(train.data$y)
+train.plot<-ggplot()+geom_point(data=train.data,aes(x=x1,y=x2,shape=type,colour=type))+stat_contour(data=con,aes(y1,y2,z=z),breaks=0)+ggtitle("train dataset")
+colnames(test.data)<-c("x1","x2","y")
+test.data$type=as.factor(test.data$y)
+test.plot<-ggplot()+geom_point(data=test.data,aes(x=x1,y=x2,shape=type,colour=type))+stat_contour(data=con,aes(y1,y2,z=z),breaks=0)+ggtitle("test dataset")
+
+raw.plot<-ggplot()+geom_point(data=train.data,aes(x=x1,y=x2,shape=type,colour=type))
+
+
+s=0
+for (k in 1:m)
+{
+  j=ifelse((k%%2)==1,1,2)
+  s=s+beta[k]*sign(bk[1,k]*train.data[,j]+bk[2,k])
+}
+plotdata=train.data
+plotdata$cluster=as.factor(sign(s))
+ggplot()+geom_point(data=train.data,aes(x=x1,y=x2,shape=type,colour=type))+geom_point(data=plotdata,aes(x=x1,y=x2,shape=cluster,colour=cluster))
+
+
+plotdata=data.frame(x1=train.data[,1],x2=train.data[,2],y=s,type=as.factor(train.data[,3]))
+plot1 <- ggplot(data=plotdata, aes(x=x1, y=x2, z = y))+
+       stat_contour(breaks=4,colour=2,size=2)
+	  
+plot1
+
+pdf<-pdf("HW4_4_2c.pdf",width=8,height=6)
+raw.plot
+dev.off()
+
+pdf<-pdf("HW4_4_trainc.pdf",width=8,height=6)
+train.plot
+dev.off()
+
+pdf<-pdf("HW4_4_testc.pdf",width=8,height=6)
+test.plot
+dev.off()
