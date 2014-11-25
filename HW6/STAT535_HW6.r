@@ -81,8 +81,12 @@ PI=ggplot()+geom_point(data=plotdata,aes(x=x1,y=x2,color=cluster))+ggtitle("K=4 
 	geom_point(data=center, aes(x=X1,y=X2),shape=18,color="black",size=3)
 PI
 
-pdf<-pdf("HW6_1.pdf",width=8,height=6)
+pdf<-pdf("HW6_2.pdf",width=8,height=6)
 PI
+dev.off()
+trend1=ggplot(data=data.frame(iter=1:length(result$L),cost=result$L),aes(x=iter,y=cost))+geom_line(color="blue",size=1.5)+ggtitle("cost based on power initialization")
+pdf<-pdf("HW6_4.pdf",width=8,height=6)
+trend1
 dev.off()
 
 
@@ -93,12 +97,13 @@ center=data.frame(result$center)
 NI=ggplot()+geom_point(data=plotdata,aes(x=x1,y=x2,color=cluster))+ggtitle("K=4 Naive Initialization")+
 	geom_point(data=center, aes(x=x1,y=x2),shape=18,color="black",size=3)
 NI
-pdf<-pdf("HW6_1.pdf",width=8,height=6)
+pdf<-pdf("HW6_3.pdf",width=8,height=6)
 NI
+dev.off()
+trend2=ggplot(data=data.frame(iter=1:length(result$L),cost=result$L),aes(x=iter,y=cost))+geom_line(color="blue",size=1.5)+ggtitle("cost based on native initialization")
+pdf<-pdf("HW6_5.pdf",width=8,height=6)
+trend2
 dev.off()
 
 
 #Problem two
-
-
-plot(x=1:length(result$L),y=result$L)
